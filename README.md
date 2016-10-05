@@ -1,6 +1,8 @@
 # AdeunisDemonstrator
 Tool to configure Adeunis LoRa demonstrator v2
 
+![alt tag](https://github.com/onesse/AdeunisDemonstrator/blob/master/adeunis/LoRa_demonstrator.png?raw=true)
+
 Before running for the first time this program make sure :
 - you connected your device,
 - you turned on the device,
