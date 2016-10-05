@@ -24,6 +24,6 @@ Then when you run you program add the following argument :
 ```
 -Djava.library.path=/usr/lib/jni/
 ```
-##:warning: gnu.io.CommPortIdentifier serial devices does not include ttyACM => you need to edit and package rxtx project to add ttyACM support. (edit ./src/gnu/io/RXTXCommDriver.java to include the following after line 581 : "ttyACM")
+:warning: gnu.io.CommPortIdentifier serial devices does not include ttyACM => you need to edit and package rxtx project to add ttyACM support. (edit ./src/gnu/io/RXTXCommDriver.java to include the following after line 581 : "ttyACM")
 
 Enjoy !
