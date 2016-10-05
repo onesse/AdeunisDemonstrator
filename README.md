@@ -1,5 +1,5 @@
 # AdeunisDemonstrator
-Tool to configure Adeunis LoRa demonstrator v2
+Tool to configure Adeunis LoRa demonstrator v2 (on Windows)
 
 ![alt tag](https://github.com/onesse/AdeunisDemonstrator/blob/master/adeunis/LoRa_demonstrator.png?raw=true)
 
