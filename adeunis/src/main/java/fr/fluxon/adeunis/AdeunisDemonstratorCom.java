@@ -142,31 +142,33 @@ public class AdeunisDemonstratorCom
 
 		Scanner scan = new Scanner(System.in);
 
-		System.out.println("Entrer le port de communication : ");
+		System.out.println("Enter the COM port to use : ");
 		port = scan.next().toUpperCase();
 
 		String listeOptions = "***********************************************\n" +
-				"Choisissez parmi les options suivantes : \n \t -Choisir le mode d'activation : ACT\n" +
-				"\t -Activer l'ADR : ADR -> 1 / 0\n" +
-				"\t -Rentrer le DevAddr (4 octets) : DEVADDR\n" +
-				"\t -Rentrer le AppSkey (16 octets) : APPSKEY\n" +
-				"\t -Rentrer le NwkSkey (16 octets) : NWKSKEY\n" +
-				"\t -Rentrer le Appkey (16 octets) : APPKEY\n" +
-				"\t -Rentrer le AppEui (8 octets) : APPEUI\n" +
-				"\t -Changer le fPort (1 octet) : FPORT\n" +
-				"\t -Mettre le ACK et la classe : AKLS\n" +
-				"\t -Changer la periode d envoi (int) : TX\n"+
-				"\t -Lire un registre : READ\n"+
-				"\t -Quitter le programme : EXIT\n"+
+				"Choose one of the following options : \n" +
+				"\t -Choose activation mode : ACT\n" +
+				"\t -Activate ADR : ADR -> 1 / 0\n" +
+				"\t -Enter DevAddr (4 octets) : DEVADDR\n" +
+				"\t -Enter AppSkey (16 octets) : APPSKEY\n" +
+				"\t -Enter NwkSkey (16 octets) : NWKSKEY\n" +
+				"\t -Enter Appkey (16 octets) : APPKEY\n" +
+				"\t -Enter AppEui (8 octets) : APPEUI\n" +
+				"\t -Modify fPort (1 octet) : FPORT\n" +
+				"\t -Choose ACK and CLASS of the device : AKLS\n" +
+				"\t -Change TX period (int) : TX\n"+
+				"\t -Read a register : READ\n"+
+				"\t -Exit program : EXIT\n"+
 				"***********************************************";
 		try
 		{
-			System.out.println("PATIENTEZ SVP...");
 			AdeunisDemonstratorCom firstStep = new AdeunisDemonstratorCom();
 
 			firstStep.connect(port);
 			InputStream in = firstStep.serialPort.getInputStream();
 			OutputStream out = firstStep.serialPort.getOutputStream();
+			
+			System.out.println("PLEASE WAIT...");
 
 			firstStep.serialWriter(out, COMMAND_MODE);
 			verifExecution("COMMAND_MODE - OK", "COMMAND_MODE - KO", in);
@@ -180,10 +182,10 @@ public class AdeunisDemonstratorCom
 				System.out.println(listeOptions);
 				boolean launch = false;
 				String command = ASSIGN_REGISTER;
-				System.out.println("Choisir une option : ");
+				System.out.println("Choose one option : ");
 				switch(scan.next().toUpperCase()){
 				case "ACT":
-					System.out.println("OTAA ou ABP ?");
+					System.out.println("OTAA or ABP ?");
 					String act = scan.next().toUpperCase();
 					command = command.replace("<n>", String.valueOf(ACTIVATION_MODE_REGISTER));
 					if(act.equals("OTAA")){
@@ -221,7 +223,7 @@ public class AdeunisDemonstratorCom
 					}
 					break;
 				case "DEVADDR":
-					System.out.println("Veuillez ajouter votre DEVADDR (hexa):");
+					System.out.println("Add your DEVADDR (hexa):");
 					String devAddr = scan.next().toUpperCase();
 					if(devAddr.length() == 8){
 						command = command.replace("<n>", String.valueOf(DEVADDR_REGISTER));
@@ -234,7 +236,7 @@ public class AdeunisDemonstratorCom
 					}
 					break;
 				case "APPSKEY":
-					System.out.println("Veuillez ajouter votre APPSKEY (hexa):");
+					System.out.println("Add your APPSKEY (hexa):");
 					String appSKey = scan.next().toUpperCase();
 					if(appSKey.length() == 32){
 						for(int i=0; i<4; i++){
@@ -250,7 +252,7 @@ public class AdeunisDemonstratorCom
 					}
 					break;
 				case "NWKSKEY":
-					System.out.println("Veuillez ajouter votre NWKSKEY (hexa):");
+					System.out.println("Add your NWKSKEY (hexa):");
 					String nwkSKey = scan.next().toUpperCase();
 					if(nwkSKey.length() == 32){
 						for(int i=0; i<4; i++){
@@ -266,7 +268,7 @@ public class AdeunisDemonstratorCom
 					}
 					break;
 				case "APPKEY":
-					System.out.println("Veuillez ajouter votre APPKEY (hexa):");
+					System.out.println("Add your APPKEY (hexa):");
 					String appKey = scan.next().toUpperCase();
 					if(appKey.length() == 32){
 						for(int i=0; i<4; i++){
@@ -282,7 +284,7 @@ public class AdeunisDemonstratorCom
 					}
 					break;
 				case "APPEUI":
-					System.out.println("Veuillez ajouter votre APPEUI (hexa):");
+					System.out.println("Add your APPEUI (hexa):");
 					String appEUI = scan.next().toUpperCase();
 					if(appEUI.length() == 16){
 						for(int i=0; i<2; i++){
@@ -298,7 +300,7 @@ public class AdeunisDemonstratorCom
 					}
 					break;
 				case "FPORT":
-					System.out.println("Quel port à utiliser ?");
+					System.out.println("What fPort ?");
 					int fPort = Integer.parseInt(scan.next().toUpperCase());
 					command = command.replace("<n>", String.valueOf(UPLINK_PORT_REGISTER));
 					if(fPort < 244 && fPort > 0){
@@ -330,7 +332,7 @@ public class AdeunisDemonstratorCom
 					}
 					break;
 				case "TX":
-					System.out.println("Quel temps entre deux messages (en secondes) ?");
+					System.out.println("How many seconds between two messages (in secondes) ?");
 					int period = Integer.parseInt(scan.next().toUpperCase());
 					command = command.replace("<n>", String.valueOf(TX_PERIODICITY_REGISTER));
 					if(period <= 86400 && period >= 0){
@@ -346,7 +348,7 @@ public class AdeunisDemonstratorCom
 					}
 					break;
 				case "READ":
-					System.out.println("Quel registre ?");
+					System.out.println("What register ?");
 					int registre = Integer.parseInt(scan.next().toUpperCase());
 					command = CONTENT_REGISTER;
 					command = command.replace("<n>", String.valueOf(registre));
