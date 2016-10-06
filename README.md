@@ -24,6 +24,20 @@ Then when you run you program add the following argument :
 ```
 -Djava.library.path=/usr/lib/jni/
 ```
-:warning: gnu.io.CommPortIdentifier serial devices does not include ttyACM => you need to edit and package rxtx project to add ttyACM support. (edit ./src/gnu/io/RXTXCommDriver.java to include the following after line 581 : "ttyACM")
+:warning: gnu.io.CommPortIdentifier serial devices does not include ttyACM. A symbolik link must be created to use ttyS[x]. Exemple : 
+First find the port number with the command
+```
+demsg | grep ACM
+```
+Then create a symbolik link (in my case the port was 0)
+
+```
+sudo ln -s /dev/ttyACM0 /dev/ttyS80
+```
+Run the program and enter :
+```
+/dev/ttyS80
+```
+as the COM port to use.
 
 Enjoy !
