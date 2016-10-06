@@ -40,4 +40,38 @@ Run the program and enter :
 ```
 as the COM port to use.
 
+## Program menu
+```
+Enter the COM port to use : 
+/dev/ttyS80
+Stable Library
+=========================================
+Native lib Version = RXTX-2.2pre2
+Java lib Version   = RXTX-2.1-7
+WARNING:  RXTX Version mismatch
+	Jar version = RXTX-2.1-7
+	native lib Version = RXTX-2.2pre2
+PLEASE WAIT...
+COMMAND_MODE - OK
+
+O
+COMMAND_REGISTERS_UNLOCK - OK
+***********************************************
+Choose one of the following options : 
+	 -Choose activation mode : ACT
+	 -Activate ADR : ADR -> 1 / 0
+	 -Enter DevAddr (4 octets) : DEVADDR
+	 -Enter AppSkey (16 octets) : APPSKEY
+	 -Enter NwkSkey (16 octets) : NWKSKEY
+	 -Enter Appkey (16 octets) : APPKEY
+	 -Enter AppEui (8 octets) : APPEUI
+	 -Modify fPort (1 octet) : FPORT
+	 -Choose ACK and CLASS of the device : AKLS
+	 -Change TX period (int) : TX
+	 -Read a register : READ
+	 -Exit program : EXIT
+***********************************************
+Choose one option :
+```
+
 Enjoy !
