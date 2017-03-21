@@ -20,14 +20,14 @@ Install the package librxtx-java
 ```
 apt-get install librxtx-java
 ```
-Then when you run you program add the following argument :
+Then when you run you program add the following argument to your JVM :
 ```
 -Djava.library.path=/usr/lib/jni/
 ```
 :warning: gnu.io.CommPortIdentifier serial devices does not include ttyACM. A symbolik link must be created to use ttyS[x]. Exemple : 
 First find the port number with the command
 ```
-demsg | grep ACM
+dmesg | grep ACM
 ```
 Then create a symbolik link (in my case the port was 0)
 
@@ -58,18 +58,19 @@ O
 COMMAND_REGISTERS_UNLOCK - OK
 ***********************************************
 Choose one of the following options : 
-	 -Choose activation mode : ACT
-	 -Activate ADR : ADR -> 1 / 0
-	 -Enter DevAddr (4 octets) : DEVADDR
-	 -Enter AppSkey (16 octets) : APPSKEY
-	 -Enter NwkSkey (16 octets) : NWKSKEY
-	 -Enter Appkey (16 octets) : APPKEY
-	 -Enter AppEui (8 octets) : APPEUI
-	 -Modify fPort (1 octet) : FPORT
-	 -Choose ACK and CLASS of the device : AKLS
-	 -Change TX period (int) : TX
-	 -Read a register : READ
-	 -Exit program : EXIT
+	 -Choose activation mode :              ACT
+	 -Activate ADR :                        ADR -> 1 / 0
+	 -Enter DevAddr (4 octets) :            DEVADDR
+	 -Enter AppSkey (16 octets) :           APPSKEY
+	 -Enter NwkSkey (16 octets) :           NWKSKEY
+	 -Enter Appkey (16 octets) :            APPKEY
+	 -Enter AppEui (8 octets) :             APPEUI
+	 -Modify fPort (1 octet) :              FPORT
+	 -Choose ACK and CLASS of the device :  AKLS
+	 -Change TX period (int) :              TX
+	 -Read a register :                     READ
+	 -Write a register :                    WRITE
+	 -Exit program :                        EXIT
 ***********************************************
 Choose one option :
 ```

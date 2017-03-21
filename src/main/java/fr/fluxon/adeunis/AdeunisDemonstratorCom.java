@@ -1,31 +1,23 @@
 package fr.fluxon.adeunis;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.util.Scanner;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-
 import gnu.io.CommPort;
 import gnu.io.CommPortIdentifier;
 import gnu.io.SerialPort;
 
+import java.io.*;
+import java.nio.ByteBuffer;
+import java.util.Enumeration;
+import java.util.Scanner;
+
 public class AdeunisDemonstratorCom
 {
-	SerialPort serialPort;
-	CommPort commPort;
+	private SerialPort serialPort;
+	private CommPort commPort;
 
-	public void FirstStep(){
-	}
-
-	void connect ( String portName ) throws Exception
+	private void connect ( String portName ) throws Exception
 	{
 		CommPortIdentifier portIdentifier = CommPortIdentifier.getPortIdentifier(portName);
+
 		if ( portIdentifier.isCurrentlyOwned() )
 		{
 			System.out.println("Error: Port is currently in use");
@@ -49,7 +41,7 @@ public class AdeunisDemonstratorCom
 		}
 	}
 
-	final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
+	private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
 	public static String bytesToHex(byte[] bytes) {
 		char[] hexChars = new char[bytes.length * 2];
 		for ( int j = 0; j < bytes.length; j++ ) {
@@ -75,19 +67,15 @@ public class AdeunisDemonstratorCom
 					buf.put((byte) value);
 				}
 			}
-			if(value == 13 && previousValue == 69){
+			if(previousValue == 69){
 				br.close();
 				System.out.println("problem error E");
 				return false;
 			}
-			if(value == 13){
-				br.close();
-				buf.clear();
-				System.out.println(new String(buf.array()));
-				return true;
-			}
 			br.close();
-			return false;
+			buf.clear();
+			System.out.println(new String(buf.array()));
+			return true;
 		}
 		catch ( IOException e )
 		{
@@ -97,7 +85,7 @@ public class AdeunisDemonstratorCom
 	}
 
 	/** */
-	public void serialWriter(OutputStream out, String toSend) {
+	private void serialWriter(OutputStream out, String toSend) {
 		try
 		{
 			byte[] array = toSend.getBytes();
@@ -117,7 +105,7 @@ public class AdeunisDemonstratorCom
 	private static final String SIMPLE_RESET = "AT&RST\r\n";
 	private static final String EXIT_COMMAND_MODE = "ATO\r\n";
 	private static final String COMMAND_MODE = "+++";
-	private static final String ASSIGN_REGISTER = "ATS<n>=<m>\r\n";	
+	private static final String ASSIGN_REGISTER = "ATS<n>=<m>\r\n";
 
 
 	private static final String COMMAND_REGISTERS_UNLOCK = "ATT63 ROOT\r\n";
@@ -138,27 +126,34 @@ public class AdeunisDemonstratorCom
 
 	public static void main ( String[] args )
 	{
+		Enumeration ports = CommPortIdentifier.getPortIdentifiers();
+
+		while(ports.hasMoreElements()){
+			CommPortIdentifier port = (CommPortIdentifier) ports.nextElement();
+			System.out.println(port.getName());
+		}
 		String port;
 
 		Scanner scan = new Scanner(System.in);
 
 		System.out.println("Enter the COM port to use : ");
-		port = scan.next().toUpperCase();
+		port = scan.next();
 
 		String listeOptions = "***********************************************\n" +
 				"Choose one of the following options : \n" +
-				"\t -Choose activation mode : ACT\n" +
-				"\t -Activate ADR : ADR -> 1 / 0\n" +
-				"\t -Enter DevAddr (4 octets) : DEVADDR\n" +
-				"\t -Enter AppSkey (16 octets) : APPSKEY\n" +
-				"\t -Enter NwkSkey (16 octets) : NWKSKEY\n" +
-				"\t -Enter Appkey (16 octets) : APPKEY\n" +
-				"\t -Enter AppEui (8 octets) : APPEUI\n" +
-				"\t -Modify fPort (1 octet) : FPORT\n" +
-				"\t -Choose ACK and CLASS of the device : AKLS\n" +
-				"\t -Change TX period (int) : TX\n"+
-				"\t -Read a register : READ\n"+
-				"\t -Exit program : EXIT\n"+
+				"\t -Choose activation mode : 				ACT\n" +
+				"\t -Activate ADR : 						ADR -> 1 / 0\n" +
+				"\t -Enter DevAddr (4 octets) : 			DEVADDR\n" +
+				"\t -Enter AppSkey (16 octets) : 			APPSKEY\n" +
+				"\t -Enter NwkSkey (16 octets) : 			NWKSKEY\n" +
+				"\t -Enter Appkey (16 octets) : 			APPKEY\n" +
+				"\t -Enter AppEui (8 octets) : 			APPEUI\n" +
+				"\t -Modify fPort (1 octet) : 				FPORT\n" +
+				"\t -Choose ACK and CLASS of the device : 	AKLS\n" +
+				"\t -Change TX period (int) : 				TX\n"+
+				"\t -Read a register : 					READ\n"+
+				"\t -Write a register : 					WRITE\n"+
+				"\t -Exit program : 						EXIT\n"+
 				"***********************************************";
 		try
 		{
@@ -167,7 +162,7 @@ public class AdeunisDemonstratorCom
 			firstStep.connect(port);
 			InputStream in = firstStep.serialPort.getInputStream();
 			OutputStream out = firstStep.serialPort.getOutputStream();
-			
+
 			System.out.println("PLEASE WAIT...");
 
 			firstStep.serialWriter(out, COMMAND_MODE);
@@ -184,184 +179,196 @@ public class AdeunisDemonstratorCom
 				String command = ASSIGN_REGISTER;
 				System.out.println("Choose one option : ");
 				switch(scan.next().toUpperCase()){
-				case "ACT":
-					System.out.println("OTAA or ABP ?");
-					String act = scan.next().toUpperCase();
-					command = command.replace("<n>", String.valueOf(ACTIVATION_MODE_REGISTER));
-					if(act.equals("OTAA")){
-						command = command.replace("<m>", "1");
-						launch = true;
-					}else if(act.equals("ABP")){
-						command= command.replace("<m>", "0");
-						launch = true;
-					}else{
-						System.out.println("no such option");
-					}
-					if(launch){
-						System.out.println(command);
-						firstStep.serialWriter(out, command);
-						verifExecution("ACTIVATION_MODE - OK", "ACTIVATION_MODE - KO", in);
-					}
-					break;
-				case "ADR":
-					System.out.println("0 ou 1 (activé) ?");
-					String adr = scan.next().toUpperCase();
-					command = command.replace("<n>", String.valueOf(LORA_OPTIONS_REGISTER));
-					if(adr.equals("1")){
-						command = command.replace("<m>", "1");
-						launch = true;
-					}else if(adr.equals("0")){
-						command= command.replace("<m>", "0");
-						launch = true;
-					}else{
-						System.out.println("no such option");
-					}
-					if(launch){
-						System.out.println(command);
-						firstStep.serialWriter(out, command);
-						verifExecution("ADR_MODE - OK", "ADR_MODE - KO", in);
-					}
-					break;
-				case "DEVADDR":
-					System.out.println("Add your DEVADDR (hexa):");
-					String devAddr = scan.next().toUpperCase();
-					if(devAddr.length() == 8){
-						command = command.replace("<n>", String.valueOf(DEVADDR_REGISTER));
-						command = command.replace("<m>", devAddr);
-						System.out.println(command);
-						firstStep.serialWriter(out, command);
-						verifExecution("DEVADDR_MODIFY - OK", "DEVADDR_MODIFY - KO", in);
-					}else{
-						System.out.println("not a good size");
-					}
-					break;
-				case "APPSKEY":
-					System.out.println("Add your APPSKEY (hexa):");
-					String appSKey = scan.next().toUpperCase();
-					if(appSKey.length() == 32){
-						for(int i=0; i<4; i++){
-							String _command = new String(ASSIGN_REGISTER);
-							_command = _command.replace("<n>", String.valueOf(APPSKEY_REGISTER[i]));
-							_command = _command.replace("<m>", appSKey.substring(0+i*8, 8+ i*8));
-							System.out.println(_command);
-							firstStep.serialWriter(out, _command);
-							verifExecution("APPSKEY_MODIFY " + i + " - OK", "APPSKEY_MODIFY " + i + " - KO", in);
+					case "ACT":
+						System.out.println("OTAA or ABP ?");
+						String act = scan.next().toUpperCase();
+						command = command.replace("<n>", String.valueOf(ACTIVATION_MODE_REGISTER));
+						if(act.equals("OTAA")){
+							command = command.replace("<m>", "1");
+							launch = true;
+						}else if(act.equals("ABP")){
+							command= command.replace("<m>", "0");
+							launch = true;
+						}else{
+							System.out.println("no such option");
 						}
-					}else{
-						System.out.println("not a good size");
-					}
-					break;
-				case "NWKSKEY":
-					System.out.println("Add your NWKSKEY (hexa):");
-					String nwkSKey = scan.next().toUpperCase();
-					if(nwkSKey.length() == 32){
-						for(int i=0; i<4; i++){
-							String _command = new String(ASSIGN_REGISTER);
-							_command = _command.replace("<n>", String.valueOf(NWKSKEY_REGISTER[i]));
-							_command = _command.replace("<m>", nwkSKey.substring(0+i*8, 8+ i*8));
-							System.out.println(_command);
-							firstStep.serialWriter(out, _command);
-							verifExecution("NWKSKEY_MODIFY " + i + " - OK", "NWKSKEY_MODIFY " + i + " - KO", in);
+						if(launch){
+							System.out.println(command);
+							firstStep.serialWriter(out, command);
+							verifExecution("ACTIVATION_MODE - OK", "ACTIVATION_MODE - KO", in);
 						}
-					}else{
-						System.out.println("not a good size");
-					}
-					break;
-				case "APPKEY":
-					System.out.println("Add your APPKEY (hexa):");
-					String appKey = scan.next().toUpperCase();
-					if(appKey.length() == 32){
-						for(int i=0; i<4; i++){
-							String _command = new String(ASSIGN_REGISTER);
-							_command = _command.replace("<n>", String.valueOf(APPKEY_REGISTER[i]));
-							_command = _command.replace("<m>", appKey.substring(0+i*8, 8+ i*8));
-							System.out.println(_command);
-							firstStep.serialWriter(out, _command);
-							verifExecution("APPKEY_MODIFY " + i + " - OK", "APPKEY_MODIFY " + i + " - KO", in);
+						break;
+					case "ADR":
+						System.out.println("0 ou 1 (activé) ?");
+						String adr = scan.next().toUpperCase();
+						command = command.replace("<n>", String.valueOf(LORA_OPTIONS_REGISTER));
+						if(adr.equals("1")){
+							command = command.replace("<m>", "1");
+							launch = true;
+						}else if(adr.equals("0")){
+							command= command.replace("<m>", "0");
+							launch = true;
+						}else{
+							System.out.println("no such option");
 						}
-					}else{
-						System.out.println("not a good size");
-					}
-					break;
-				case "APPEUI":
-					System.out.println("Add your APPEUI (hexa):");
-					String appEUI = scan.next().toUpperCase();
-					if(appEUI.length() == 16){
-						for(int i=0; i<2; i++){
-							String _command = new String(ASSIGN_REGISTER);
-							_command = _command.replace("<n>", String.valueOf(APPEUI_REGISTER[i]));
-							_command = _command.replace("<m>", appEUI.substring(0+i*8, 8+ i*8));
-							System.out.println(_command);
-							firstStep.serialWriter(out, _command);
-							verifExecution("APPEUI_MODIFY " + i + " - OK", "APPEUI_MODIFY " + i + " - KO", in);
+						if(launch){
+							System.out.println(command);
+							firstStep.serialWriter(out, command);
+							verifExecution("ADR_MODE - OK", "ADR_MODE - KO", in);
 						}
-					}else{
-						System.out.println("not a good size");
-					}
-					break;
-				case "FPORT":
-					System.out.println("What fPort ?");
-					int fPort = Integer.parseInt(scan.next().toUpperCase());
-					command = command.replace("<n>", String.valueOf(UPLINK_PORT_REGISTER));
-					if(fPort < 244 && fPort > 0){
-						command = command.replace("<m>", String.valueOf(fPort));
-						launch = true;
-					}else{
-						System.out.println("no such option");
-					}
-					if(launch){
+						break;
+					case "DEVADDR":
+						System.out.println("Add your DEVADDR (hexa):");
+						String devAddr = scan.next().toUpperCase();
+						if(devAddr.length() == 8){
+							command = command.replace("<n>", String.valueOf(DEVADDR_REGISTER));
+							command = command.replace("<m>", devAddr);
+							System.out.println(command);
+							firstStep.serialWriter(out, command);
+							verifExecution("DEVADDR_MODIFY - OK", "DEVADDR_MODIFY - KO", in);
+						}else{
+							System.out.println("not a good size");
+						}
+						break;
+					case "APPSKEY":
+						System.out.println("Add your APPSKEY (hexa):");
+						String appSKey = scan.next().toUpperCase();
+						if(appSKey.length() == 32){
+							for(int i=0; i<4; i++){
+								String _command = ASSIGN_REGISTER;
+								_command = _command.replace("<n>", String.valueOf(APPSKEY_REGISTER[i]));
+								_command = _command.replace("<m>", appSKey.substring(0+i*8, 8+ i*8));
+								System.out.println(_command);
+								firstStep.serialWriter(out, _command);
+								verifExecution("APPSKEY_MODIFY " + i + " - OK", "APPSKEY_MODIFY " + i + " - KO", in);
+							}
+						}else{
+							System.out.println("not a good size");
+						}
+						break;
+					case "NWKSKEY":
+						System.out.println("Add your NWKSKEY (hexa):");
+						String nwkSKey = scan.next().toUpperCase();
+						if(nwkSKey.length() == 32){
+							for(int i=0; i<4; i++){
+								String _command = ASSIGN_REGISTER;
+								_command = _command.replace("<n>", String.valueOf(NWKSKEY_REGISTER[i]));
+								_command = _command.replace("<m>", nwkSKey.substring(0+i*8, 8+ i*8));
+								System.out.println(_command);
+								firstStep.serialWriter(out, _command);
+								verifExecution("NWKSKEY_MODIFY " + i + " - OK", "NWKSKEY_MODIFY " + i + " - KO", in);
+							}
+						}else{
+							System.out.println("not a good size");
+						}
+						break;
+					case "APPKEY":
+						System.out.println("Add your APPKEY (hexa):");
+						String appKey = scan.next().toUpperCase();
+						if(appKey.length() == 32){
+							for(int i=0; i<4; i++){
+								String _command = ASSIGN_REGISTER;
+								_command = _command.replace("<n>", String.valueOf(APPKEY_REGISTER[i]));
+								_command = _command.replace("<m>", appKey.substring(0+i*8, 8+ i*8));
+								System.out.println(_command);
+								firstStep.serialWriter(out, _command);
+								verifExecution("APPKEY_MODIFY " + i + " - OK", "APPKEY_MODIFY " + i + " - KO", in);
+							}
+						}else{
+							System.out.println("not a good size");
+						}
+						break;
+					case "APPEUI":
+						System.out.println("Add your APPEUI (hexa):");
+						String appEUI = scan.next().toUpperCase();
+						if(appEUI.length() == 16){
+							for(int i=0; i<2; i++){
+								String _command = ASSIGN_REGISTER;
+								_command = _command.replace("<n>", String.valueOf(APPEUI_REGISTER[i]));
+								_command = _command.replace("<m>", appEUI.substring(0+i*8, 8+ i*8));
+								System.out.println(_command);
+								firstStep.serialWriter(out, _command);
+								verifExecution("APPEUI_MODIFY " + i + " - OK", "APPEUI_MODIFY " + i + " - KO", in);
+							}
+						}else{
+							System.out.println("not a good size");
+						}
+						break;
+					case "FPORT":
+						System.out.println("What fPort ?");
+						int fPort = Integer.parseInt(scan.next().toUpperCase());
+						command = command.replace("<n>", String.valueOf(UPLINK_PORT_REGISTER));
+						if(fPort < 244 && fPort > 0){
+							command = command.replace("<m>", String.valueOf(fPort));
+							launch = true;
+						}else{
+							System.out.println("no such option");
+						}
+						if(launch){
+							System.out.println(command);
+							firstStep.serialWriter(out, command);
+							verifExecution("UPLINK_FPORT_MODIFY - OK", "UPLINK_FPORT_MODIFY - KO", in);
+						}
+						break;
+					case "AKLS":
+						System.out.println("0 = Class A unconfirmed 1 = Class A confirmed 2 = Class C unconfirmed 3 = Class C confirmed ?");
+						int ackClass = Integer.parseInt(scan.next().toUpperCase());
+						command = command.replace("<n>", String.valueOf(ACK_REQUEST_AND_CLASS_REGISTER));
+						if(ackClass < 4 && ackClass >= 0){
+							command = command.replace("<m>", String.valueOf(ackClass));
+							launch = true;
+						}else{
+							System.out.println("no such option");
+						}
+						if(launch){
+							System.out.println(command);
+							firstStep.serialWriter(out, command);
+							verifExecution("ACK&CLASS - OK", "ACK&CLASS - KO", in);
+						}
+						break;
+					case "TX":
+						System.out.println("How many seconds between two messages (in secondes) ?");
+						int period = Integer.parseInt(scan.next().toUpperCase());
+						command = command.replace("<n>", String.valueOf(TX_PERIODICITY_REGISTER));
+						if(period <= 86400 && period >= 0){
+							command = command.replace("<m>", String.valueOf(period));
+							launch = true;
+						}else{
+							System.out.println("no such option");
+						}
+						if(launch){
+							System.out.println(command);
+							firstStep.serialWriter(out, command);
+							verifExecution("UPLINK_PERIOD_MODIFY - OK", "UPLINK_PERIOD_MODIFY - KO", in);
+						}
+						break;
+					case "READ":
+						System.out.println("What register ?");
+						int registre = Integer.parseInt(scan.next().toUpperCase());
+						command = CONTENT_REGISTER;
+						command = command.replace("<n>", String.valueOf(registre));
 						System.out.println(command);
 						firstStep.serialWriter(out, command);
-						verifExecution("UPLINK_FPORT_MODIFY - OK", "UPLINK_FPORT_MODIFY - KO", in);
-					}
-					break;
-				case "AKLS":
-					System.out.println("0 = Class A unconfirmed 1 = Class A confirmed 2 = Class C unconfirmed 3 = Class C confirmed ?");
-					int ackClass = Integer.parseInt(scan.next().toUpperCase());
-					command = command.replace("<n>", String.valueOf(ACK_REQUEST_AND_CLASS_REGISTER));
-					if(ackClass < 4 && ackClass >= 0){
-						command = command.replace("<m>", String.valueOf(ackClass));
-						launch = true;
-					}else{
-						System.out.println("no such option");
-					}
-					if(launch){
+						verifExecution("READ_REGISTER - OK", "READ_REGISTER - KO", in);
+						break;
+					case "WRITE":
+						System.out.println("What register do you want to write ?");
+						int register = Integer.parseInt(scan.next());
+						command = ASSIGN_REGISTER;
+						command = command.replace("<n>", String.valueOf(register));
+						System.out.println("Please enter the new register value : ");
+						String value = scan.next();
+						command = command.replace("<m>", value);
 						System.out.println(command);
 						firstStep.serialWriter(out, command);
-						verifExecution("ACK&CLASS - OK", "ACK&CLASS - KO", in);
-					}
-					break;
-				case "TX":
-					System.out.println("How many seconds between two messages (in secondes) ?");
-					int period = Integer.parseInt(scan.next().toUpperCase());
-					command = command.replace("<n>", String.valueOf(TX_PERIODICITY_REGISTER));
-					if(period <= 86400 && period >= 0){
-						command = command.replace("<m>", String.valueOf(period));
-						launch = true;
-					}else{
+						verifExecution("ASSIGN VALUE - OK", "ASSIGN VALUE - KO", in);
+						break;
+					case "EXIT":
+						loop = false;
+						break;
+					default:
 						System.out.println("no such option");
-					}
-					if(launch){
-						System.out.println(command);
-						firstStep.serialWriter(out, command);
-						verifExecution("UPLINK_PERIOD_MODIFY - OK", "UPLINK_PERIOD_MODIFY - KO", in);
-					}
-					break;
-				case "READ":
-					System.out.println("What register ?");
-					int registre = Integer.parseInt(scan.next().toUpperCase());
-					command = CONTENT_REGISTER;
-					command = command.replace("<n>", String.valueOf(registre));
-					System.out.println(command);
-					firstStep.serialWriter(out, command);
-					verifExecution("READ_REGISTER - OK", "READ_REGISTER - KO", in);
-					break;
-				case "EXIT":
-					loop = false;
-					break;
-				default:
-					System.out.println("no such option");
-					break;
+						break;
 				}
 				firstStep.serialWriter(out, SAVE_NEW_CONFIG);
 				verifExecution("SAVE_NEW_CONFIG - OK", "SAVE_NEW_CONFIG - KO", in);
@@ -388,11 +395,5 @@ public class AdeunisDemonstratorCom
 			System.err.println(messageError);
 		}
 	}
-	private void modifyADR(byte register, boolean ADR){
-		if(ADR){
-			register |= (1 << 0);
-		}else{
-			register &= ~(1 << 0);
-		}
-	}
+
 }
