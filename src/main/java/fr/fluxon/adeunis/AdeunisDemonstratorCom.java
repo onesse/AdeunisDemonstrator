@@ -108,7 +108,7 @@ public class AdeunisDemonstratorCom
 	private static final String ASSIGN_REGISTER = "ATS<n>=<m>\r\n";
 
 
-	private static final String COMMAND_REGISTERS_UNLOCK = "ATT63 ROOT\r\n";
+	private static final String COMMAND_REGISTERS_UNLOCK = "ATT63 PROVIDER\r\n";
 
 	private static final int ACTIVATION_MODE_REGISTER = 221; // 0 : ABP 1 : OTAA
 	private static final int LORA_OPTIONS_REGISTER = 220;
@@ -128,10 +128,13 @@ public class AdeunisDemonstratorCom
 	{
 		Enumeration ports = CommPortIdentifier.getPortIdentifiers();
 
+		System.out.println("\n***********Below available ports**********");
 		while(ports.hasMoreElements()){
 			CommPortIdentifier port = (CommPortIdentifier) ports.nextElement();
 			System.out.println(port.getName());
 		}
+		System.out.println("\n*********************\n");
+
 		String port;
 
 		Scanner scan = new Scanner(System.in);
@@ -142,7 +145,7 @@ public class AdeunisDemonstratorCom
 		String listeOptions = "***********************************************\n" +
 				"Choose one of the following options : \n" +
 				"\t -Choose activation mode : 				ACT\n" +
-				"\t -Activate ADR : 						ADR -> 1 / 0\n" +
+				"\t -Activate ADR : 						ADR\n" +
 				"\t -Enter DevAddr (4 octets) : 			DEVADDR\n" +
 				"\t -Enter AppSkey (16 octets) : 			APPSKEY\n" +
 				"\t -Enter NwkSkey (16 octets) : 			NWKSKEY\n" +
@@ -153,6 +156,7 @@ public class AdeunisDemonstratorCom
 				"\t -Change TX period (int) : 				TX\n"+
 				"\t -Read a register : 					READ\n"+
 				"\t -Write a register : 					WRITE\n"+
+				"\t -Reset factory : 						RESET\n"+
 				"\t -Exit program : 						EXIT\n"+
 				"***********************************************";
 		try
@@ -171,7 +175,7 @@ public class AdeunisDemonstratorCom
 			firstStep.serialWriter(out, COMMAND_REGISTERS_UNLOCK);
 			verifExecution("COMMAND_REGISTERS_UNLOCK - OK", "COMMAND_REGISTERS_UNLOCK - KO", in);
 
-			//PROGRAM
+			// PROGRAM
 			boolean loop = true;
 			while(loop){
 				System.out.println(listeOptions);
@@ -311,10 +315,10 @@ public class AdeunisDemonstratorCom
 						}
 						break;
 					case "AKLS":
-						System.out.println("0 = Class A unconfirmed 1 = Class A confirmed 2 = Class C unconfirmed 3 = Class C confirmed ?");
-						int ackClass = Integer.parseInt(scan.next().toUpperCase());
+						System.out.println("0 = Class A unconfirmed / 1 = Class A confirmed / 10 = Class C unconfirmed / 11 = Class C confirmed ?");
+						String ackClass = scan.next().toUpperCase();
 						command = command.replace("<n>", String.valueOf(ACK_REQUEST_AND_CLASS_REGISTER));
-						if(ackClass < 4 && ackClass >= 0){
+						if(ackClass.equals("0") || ackClass.equals("1") || ackClass.equals("10") || ackClass.equals("11")){
 							command = command.replace("<m>", String.valueOf(ackClass));
 							launch = true;
 						}else{
@@ -363,19 +367,29 @@ public class AdeunisDemonstratorCom
 						firstStep.serialWriter(out, command);
 						verifExecution("ASSIGN VALUE - OK", "ASSIGN VALUE - KO", in);
 						break;
+					case "RESET":
+						System.out.println("Are you sure ? (y or n)");
+						String userChoise = scan.next();
+						command = RESET_FACTORY;
+						if(userChoise.equals("y")) {
+							System.out.println(command);
+							firstStep.serialWriter(out, command);
+							verifExecution("RESET - OK", "RESET - KO", in);
+						}
+						break;
 					case "EXIT":
-						loop = false;
+						firstStep.serialWriter(out, EXIT_COMMAND_MODE);
+						if(verifExecution("EXIT_COMMAND_MODE - OK", "EXIT_COMMAND_MODE - KO", in)) loop = false;
 						break;
 					default:
 						System.out.println("no such option");
 						break;
 				}
-				firstStep.serialWriter(out, SAVE_NEW_CONFIG);
-				verifExecution("SAVE_NEW_CONFIG - OK", "SAVE_NEW_CONFIG - KO", in);
+				if(loop) {
+					firstStep.serialWriter(out, SAVE_NEW_CONFIG);
+					verifExecution("SAVE_NEW_CONFIG - OK", "SAVE_NEW_CONFIG - KO", in);
+				}
 			}
-
-			firstStep.serialWriter(out, EXIT_COMMAND_MODE);
-			verifExecution("EXIT_COMMAND_MODE - OK", "EXIT_COMMAND_MODE - KO", in);
 
 			in.close();
 			out.close();
@@ -388,11 +402,13 @@ public class AdeunisDemonstratorCom
 		}
 	}
 
-	private static void verifExecution(String messageSuccess, String messageError, InputStream in){
+	private static boolean verifExecution(String messageSuccess, String messageError, InputStream in){
 		if(AdeunisDemonstratorCom.serialReader(in)){
 			System.out.println(messageSuccess);
+			return true;
 		}else{
 			System.err.println(messageError);
+			return false;
 		}
 	}
 
